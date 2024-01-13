@@ -17,11 +17,27 @@ fn main() {
 
     let text = "完全に理解した";
 
-    let scale = Scale { x: 100.0, y: 400.0 };
+    let mut scale = Scale { x: 350.0, y: 350.0 };
+    for _ in 0..100 {
+        let glyphs: Vec<Rect<i32>> = font
+            .layout(text, scale, point(0.0, 0.0))
+            .map(|g| g.pixel_bounding_box().unwrap())
+            .collect();
+        let first = glyphs.first().unwrap().min;
+        let last = glyphs.last().unwrap().max;
+        let width = last.x - first.x;
+        if width > imgx as i32 {
+            scale = Scale {
+                x: scale.x * 0.9,
+                y: scale.y,
+            };
+        } else {
+            break;
+        }
+    }
 
     let point = point(0.0, font.v_metrics(scale).ascent);
 
-    let (w, h) = imgbuf.dimensions();
     let glyphs: Vec<Rect<i32>> = font
         .layout(text, scale, point)
         .map(|g| g.pixel_bounding_box().unwrap())
@@ -33,8 +49,8 @@ fn main() {
     let max_y = glyphs.iter().map(|g| g.max.y).max().unwrap();
     let height = max_y - min_y;
     let width = last.x - first.x;
-    let center_x = (w / 2) - (width / 2) as u32 - first.x as u32;
-    let center_y = (h / 2) - (height / 2) as u32 - min_y as u32;
+    let center_x = (imgx / 2) - (width / 2) as u32 - first.x as u32;
+    let center_y = (imgy / 2) - (height / 2) as u32 - min_y as u32;
 
     draw_text_mut(
         &mut imgbuf,
