@@ -1,8 +1,13 @@
+use std::env;
+
 use image::{ImageBuffer, Rgba};
 use imageproc::drawing::draw_text_mut;
 use rusttype::{point, Font, Rect, Scale};
 
 fn main() {
+    let args: Vec<String> = env::args().collect();
+    let text = &args[2];
+
     let imgx = 500;
     let imgy = 500;
 
@@ -14,8 +19,6 @@ fn main() {
 
     let font = Vec::from(include_bytes!("../fonts/NotoSansJP-Bold.ttf") as &[u8]);
     let font = Font::try_from_vec(font).unwrap();
-
-    let text = "完全に理解した";
 
     let mut scale = Scale { x: 350.0, y: 350.0 };
     for _ in 0..100 {
