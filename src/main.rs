@@ -1,12 +1,32 @@
-use std::env;
+use std::process::exit;
 
+use clap::Parser;
 use image::{ImageBuffer, Rgba};
 use imageproc::drawing::draw_text_mut;
 use rusttype::{point, Font, Rect, Scale};
 
+#[derive(Parser)]
+struct Args {
+    /// 絵文字にする文字列
+    first: String,
+
+    /// 文字の色 （デフォルト: pink）
+    /// 指定できる色 : pink, yellow, black, red, green, blue
+    #[arg(short, long, default_value = "pink")]
+    color: String,
+}
+
 fn main() {
-    let args: Vec<String> = env::args().collect();
-    let text = &args[2];
+    let args = Args::parse();
+    let text = &args.first;
+    let color_result = get_color(&args.color);
+    let color = match color_result {
+        Ok(color) => color,
+        Err(err) => {
+            println!("{}", err);
+            exit(1)
+        }
+    };
 
     let imgx = 500;
     let imgy = 500;
@@ -57,7 +77,7 @@ fn main() {
 
     draw_text_mut(
         &mut imgbuf,
-        Rgba([255, 255, 255, 255]),
+        color,
         center_x as i32,
         center_y as i32,
         scale,
@@ -66,4 +86,17 @@ fn main() {
     );
 
     imgbuf.save(text.to_owned() + ".png").unwrap();
+    exit(0)
+}
+
+fn get_color(color: &str) -> Result<Rgba<u8>, &str> {
+    match color {
+        "pink" => Ok(Rgba([255u8, 0u8, 255u8, 255u8])),
+        "yellow" => Ok(Rgba([255u8, 255u8, 0u8, 255u8])),
+        "black" => Ok(Rgba([0u8, 0u8, 0u8, 255u8])),
+        "red" => Ok(Rgba([255u8, 0u8, 0u8, 255u8])),
+        "green" => Ok(Rgba([0u8, 255u8, 0u8, 255u8])),
+        "blue" => Ok(Rgba([0u8, 0u8, 255u8, 255u8])),
+        _ => Err("指定できる色 : pink, yellow, black, red, green, blue, orange"),
+    }
 }
