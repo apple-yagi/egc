@@ -40,7 +40,10 @@ fn main() {
     let font = Vec::from(include_bytes!("../fonts/NotoSansJP-Bold.ttf") as &[u8]);
     let font = Font::try_from_vec(font).unwrap();
 
-    let mut scale = Scale { x: 350.0, y: 350.0 };
+    let mut scale = Scale {
+        x: 500.0,
+        y: 1000.0,
+    };
     for _ in 0..100 {
         let glyphs: Vec<Rect<i32>> = font
             .layout(text, scale, point(0.0, 0.0))
@@ -51,8 +54,26 @@ fn main() {
         let width = last.x - first.x;
         if width > imgx as i32 {
             scale = Scale {
-                x: scale.x * 0.9,
+                x: scale.x - 5.0,
                 y: scale.y,
+            };
+        } else {
+            break;
+        }
+    }
+
+    for _ in 0..100 {
+        let glyphs: Vec<Rect<i32>> = font
+            .layout(text, scale, point(0.0, 0.0))
+            .map(|g| g.pixel_bounding_box().unwrap())
+            .collect();
+        let min_y = glyphs.iter().map(|g| g.min.y).min().unwrap();
+        let max_y = glyphs.iter().map(|g| g.max.y).max().unwrap();
+        let height = max_y - min_y;
+        if height > imgy as i32 {
+            scale = Scale {
+                x: scale.x,
+                y: scale.y - 5.0,
             };
         } else {
             break;
@@ -72,18 +93,10 @@ fn main() {
     let max_y = glyphs.iter().map(|g| g.max.y).max().unwrap();
     let height = max_y - min_y;
     let width = last.x - first.x;
-    let center_x = (imgx / 2) - (width / 2) as u32 - first.x as u32;
-    let center_y = (imgy / 2) - (height / 2) as u32 - min_y as u32;
+    let center_x = (imgx / 2) as i32 - (width / 2) as i32 - first.x as i32;
+    let center_y = (imgy / 2) as i32 - (height / 2) as i32 - min_y as i32;
 
-    draw_text_mut(
-        &mut imgbuf,
-        color,
-        center_x as i32,
-        center_y as i32,
-        scale,
-        &font,
-        text,
-    );
+    draw_text_mut(&mut imgbuf, color, center_x, center_y, scale, &font, text);
 
     imgbuf.save(text.to_owned() + ".png").unwrap();
     exit(0)
